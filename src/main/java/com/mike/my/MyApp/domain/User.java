@@ -1,6 +1,7 @@
 package com.mike.my.MyApp.domain;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -15,6 +16,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
@@ -23,27 +26,44 @@ import javax.validation.constraints.NotBlank;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+// Класс User отвечает за пользователя
+// @Table - таблица в которую будут заноситься пользователи
 @Entity
 @Table(name = "usr")
 public class User implements UserDetails {
 	private static final long serialVersionUID = 1L;
 
+	// Id пользователя
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
+	
+	// Имя
 	@NotBlank(message = "Username cannot be empty")
 	private String username;
+	
+	// Пароль
 	@NotBlank(message = "Password cannot be empty")
 	private String password;
 
-
+	// В сети ли пользователь
 	private boolean active;
-
+	
+	// Email
 	@Email(message = "Email is not correct")
 	@NotBlank(message = "Email cannot be empty")
 	private String email;
+	
+	// Код активации при регистрации
 	private String activationCode;
 
+	/*
+	 * @CollectionTable - определяет имя таблицы и @JoinColumn (Задает таблицу, 
+	 * которая используется для сопоставления наборов базовых или встраиваемых типов. 
+	 * Используется для поля или свойства коллекции.).
+	 * 
+	 * @Enumerated - Указывает, что постоянное свойство или поле должно сохраняться как перечислимый тип.
+	 */
 	@ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
 	@CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
 	@Enumerated(EnumType.STRING)
@@ -52,6 +72,22 @@ public class User implements UserDetails {
 	@OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<Message> messages;
 
+	@ManyToMany
+	@JoinTable(
+				name = "user_subsciptions",
+				joinColumns = { @JoinColumn(name = "channel_id") },
+				inverseJoinColumns = { @JoinColumn(name = "subscriber_id") }
+			)
+	private Set<User> subscribers = new HashSet<>();
+	
+	@ManyToMany
+	@JoinTable(
+				name = "user_subsciptions",
+				joinColumns = { @JoinColumn(name = "subscriber_id") },
+				inverseJoinColumns = { @JoinColumn(name = "channel_id") }
+			)
+	private Set<User> subscriptions = new HashSet<>();
+	
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -163,5 +199,22 @@ public class User implements UserDetails {
 		this.messages = messages;
 	}
 
+	public Set<User> getSubscribers() {
+		return subscribers;
+	}
+
+	public void setSubscribers(Set<User> subscribers) {
+		this.subscribers = subscribers;
+	}
+
+	public Set<User> getSubscriptions() {
+		return subscriptions;
+	}
+
+	public void setSubscriptions(Set<User> subscriptions) {
+		this.subscriptions = subscriptions;
+	}
+
+	
 
 }

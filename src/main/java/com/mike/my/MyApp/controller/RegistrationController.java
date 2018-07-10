@@ -29,17 +29,25 @@ public class RegistrationController {
 	 	@Autowired
 	    private UserService userService;
 
+	 	// Для капчи
 	 	@Value("${recaptcha.secret}")
 	 	private String secret;
 	 	
 	 	@Autowired
 	    private RestTemplate restTemplate;
 	 	
+	 	/*\
+	 	 * registration: Показывает страницу регистрации
+	 	\*/
 	    @GetMapping("/registration")
 	    public String registration() {
 	        return "registration";
 	    }
 
+	 	/*\
+	 	 * addUser: Метод добавления нового пользователя
+	 	 * 
+	 	\*/
 	    @PostMapping("/registration")
 	    public String addUser(
 	    		@RequestParam("password2") String passwordConfirm,		
@@ -48,31 +56,42 @@ public class RegistrationController {
 	    		BindingResult bindingResult, 
 	    		Model model) {
 	    	
+	    	// Это нужно для капчи
 	    	String url = String.format(CAPTCHA_URL, secret, captchaResponse);
+	    	
+	    	
 	    	CaptchaResponseDto response = restTemplate.postForObject(url, Collections.emptyList(), CaptchaResponseDto.class);
 	    	
+	    	// Если есть ошибки
 	    	if(!response.isSuccess()) {
+	    		// Попросить пользователя ткнуть на капчу
 	    		model.addAttribute("errorCaptcha", "Fill captcha");
 	    	}
 	    	
+	    	// StringUtils.isEmpty(passwordConfirm) - Проверяет, является ли строка пароля пустой
 	    	boolean isConfirmEmpty = StringUtils.isEmpty(passwordConfirm);
 	    	
+	    	// Если есть ошибка, значит поле пустое
 	    	if(isConfirmEmpty) {
 	    		model.addAttribute("password2Error", "Password confirmation cannot be empty");
 	    	}
 	    	
+	    	// Если пароль есть, но не совпадает со вторым паролем, попросить заполнить правильно
 	    	if(user.getPassword() != null && !user.getPassword().equals(passwordConfirm)) {
 	    		model.addAttribute("passwordError", "Password are different");
 	    	}
 	    	
+	    	// Если пароль пустой, есть ошибки
 	    	if(isConfirmEmpty || bindingResult.hasErrors() || !response.isSuccess()) {
 	    		Map<String, String> errors = ControllerUtils.getErrors(bindingResult);
-	    	
+	    		
+	    		// Вывести ошибку
 	    		model.mergeAttributes(errors);
 	    		
 	    		return "registration";
 	    	}
 	    	
+	    	// Неправильное имя пользователя
 	        if (!userService.addUser(user)) {
 	            model.addAttribute("usernameError", "User exists!");
 	            return "registration";
@@ -82,6 +101,11 @@ public class RegistrationController {
 	        return "redirect:/login";
 	    }
 	    
+	 	/*\
+	 	 * activate: Обрабатывает код активации
+	 	 * 
+	 	 * @PathVariable нужен для обратботки url запросов
+	 	\*/
 	    @GetMapping("/activate/{code}")
 	    public String activate(Model model, @PathVariable String code) {
 	    	boolean isActivated = userService.activateUser(code);

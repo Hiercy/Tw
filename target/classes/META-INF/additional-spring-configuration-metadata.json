@@ -23,5 +23,25 @@
     "name": "recaptcha.secret",
     "type": "java.lang.String",
     "description": "A description for 'recaptcha.secret'"
+  },
+  {
+    "name": "spring.database.allowPublicKeyRetrieval",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.database.allowPublicKeyRetrieval'"
+  },
+  {
+    "name": "spring.database.allowPublicKeyRetrieval\r\nspring.database.allowPublicKeyRetrieval",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.database.allowPublicKeyRetrieval\r\nspring.database.allowPublicKeyRetrieval'"
+  },
+  {
+    "name": "spring.database.allowPublicKeyRetrieval",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.database.allowPublicKeyRetrieval'"
+  },
+  {
+    "name": "spring.database.allowPublicKeyRetrieval",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.database.allowPublicKeyRetrieval'"
   }
 ]}

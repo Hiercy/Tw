@@ -11,19 +11,28 @@ import javax.validation.constraints.NotBlank;
 
 import org.hibernate.validator.constraints.Length;
 
+// @Entity, указывает, что это объект JPA(Java Persistence API нужно для работы с базой данных).
+// Класс Message отвечает за сообщения
 @Entity
 public class Message {
 
+	// @Id - Говорит о том, что это поле id
+	// @GeneratedValue нужно для создания Primary Key(автоматическое присваивание индитификатора объекта)
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	private Long id;
 	
+	// @NotBlank - не пустое поле
+	// @Length - максимльная длина
 	@NotBlank(message = "Please fill field")
 	@Length(max = 2048, message = "Message so long (more than 2kB)")
 	private String text;
+	
 	@Length(max = 255, message = "Message so long (more than 2kB)")
 	private String tag;
 	
+	// @ManyToOne - эта аннотация означает, что у автора отношение от многим к одному
+	// @JoinColumn
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "user_id")
 	private User author;

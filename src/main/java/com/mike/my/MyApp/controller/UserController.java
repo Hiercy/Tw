@@ -24,13 +24,22 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 	
+	/*\
+	 * userList: метод для просмотра существующих пользователей
+	 * 
+	 * @PreAuthorize("hasAuthority('ADMIN')") - разрешает смотреть список существующих пользователей только админу
+	\*/
 	@PreAuthorize("hasAuthority('ADMIN')")
 	@GetMapping
 	public String userList(Model model) {
+		// Показать всех пользователей
 		model.addAttribute("users", userService.findAll());
 		return "userList";
 	}
 	
+	/*\
+	 * userEditForm: метод для изменения ролей пользователей. Доступен только админу
+	\*/
 	@PreAuthorize("hasAuthority('ADMIN')")
 	@GetMapping("{user}")
 	public String userEditForm(@PathVariable User user, Model model) {
@@ -39,6 +48,9 @@ public class UserController {
 		return "userEdit";
 	}
 	
+	/*\
+	 * userSave: обработка сохранения ролей пользователя. Доступен только админу
+	\*/
 	@PreAuthorize("hasAuthority('ADMIN')")
 	@PostMapping
 	public String userSave(
@@ -51,6 +63,10 @@ public class UserController {
 		return "redirect:/user";
 	}
 	
+	
+	/*\
+	 * getProfile: Метод отвечающий замену пароля
+	\*/
 	@GetMapping("profile")
 	public String getProfile(Model model, @AuthenticationPrincipal User user)  {
 		model.addAttribute("username", user.getUsername());
@@ -59,10 +75,62 @@ public class UserController {
 		return "profile";
 	}
 	
+	/*\
+	 * getProfile: Метод отвечающий за обработку замены пароля
+	\*/
 	@PostMapping("profile")
 	public String updateProfile(@AuthenticationPrincipal User user, @RequestParam String password, String email) {
 		userService.updateProfile(user, password, email);
 		
 		return "redirect:/user/profile";
+	}
+	
+	/*\
+	 * subscribe: Метод отвечающий за подписку
+	\*/
+	@GetMapping("subscribe/{user}")
+	public String subscribe(
+			@AuthenticationPrincipal User currentUser,
+			@PathVariable User user) {
+		
+		// Кто и на кого подписывается
+		userService.subscribe(currentUser, user);
+		
+		return "redirect:/user-messages/" + user.getId();
+	}
+	
+	/*\
+	 * unsubscribe: Метод отвечающий за отписку
+	\*/
+	@GetMapping("unsubscribe/{user}")
+	public String unsubscribe(
+			@AuthenticationPrincipal User currentUser,
+			@PathVariable User user) {
+		userService.unsubscribe(currentUser, user);
+		
+		return "redirect:/user-messages/" + user.getId();
+	}
+	
+	/*\
+	 * userList: Показывает все подписки
+	 * 
+	 * @PathVariable нужен для обратботки url запросов
+	\*/
+	@GetMapping("{type}/{user}/list")
+	public String userList(
+			Model model,
+			@PathVariable User user,
+			@PathVariable String type) {
+		
+		model.addAttribute("userChannel", user);
+		model.addAttribute("type", type);
+		
+		if("subscriptions".equals(type)) {
+			model.addAttribute("users",user.getSubscriptions());
+		} else {
+			model.addAttribute("users", user.getSubscribers());
+		}
+		
+		return "subscriptions";
 	}
 }

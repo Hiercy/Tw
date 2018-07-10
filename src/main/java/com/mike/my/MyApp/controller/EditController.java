@@ -23,10 +23,15 @@ public class EditController {
 
 	@Autowired
 	private MessageRepo messageRepo;
-	
+
 	@Autowired
 	private UserService userService;
-	
+
+ 	/*\
+ 	 * userMessages: Показывает посты другого пользователя
+ 	 * 
+ 	 * 
+ 	\*/
 	@GetMapping("/user-messages/{user}")
 	public String userMessages(
 			@AuthenticationPrincipal User currentUser, 
@@ -34,14 +39,22 @@ public class EditController {
 			Model model,
 			@RequestParam(required = false) Message message) {
 		Set<Message> messages = user.getMessages();
-		
+
+
+		model.addAttribute("userChannel", user);
+		model.addAttribute("subscriptionsCount", user.getSubscriptions().size());
+		model.addAttribute("subscribersCount", user.getSubscribers().size());
+		model.addAttribute("isSubscriber", user.getSubscribers().contains(currentUser));
 		model.addAttribute("messages", messages);
 		model.addAttribute("message", message);
 		model.addAttribute("isCurrentUser", currentUser.equals(user));
-		
+
 		return "userMessages";
 	}
-	
+
+ 	/*\
+ 	 * updateMessage: Обрабатывает update поста
+ 	\*/
 	@PostMapping("/user-messages/{user}")
 	public String updateMessage(
 			@AuthenticationPrincipal User currentUser, 
@@ -54,18 +67,18 @@ public class EditController {
 			if(!StringUtils.isEmpty(text)) {
 				message.setText(text);
 			}
-			
+
 			if(!StringUtils.isEmpty(tag)) {
 				message.setTag(tag);
 			}
 			userService.saveFile(message, file);
 			messageRepo.save(message);
 		}
-		
+
 		return "redirect:/user-messages/" + user;
 	}
-	
-	
 
-	
+
+
+
 }
